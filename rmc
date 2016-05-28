@@ -1,0 +1,22 @@
+require 'mysql' 
+require 'csv' 
+  
+#my = Mysql.new(hostname, username, password, databasename)  
+con = Mysql.new('localhost', 'root', 'root', 'ruby')  
+
+data = Array.new
+
+CSV.foreach("file.csv",{ encoding: "UTF-8", headers: true, header_converters: :symbol, converters: :all}) do |row|
+  data << row.to_hash;
+
+end
+
+
+data.each { |h| statement = "INSERT INTO student(id,name,rank) VALUES(#{h[:id]},'#{h[:name]}',#{h[:rank]});"
+   con.query(statement) }
+
+
+rs = con.query('select * from student')  
+
+rs.each_hash { |h| puts h }  
+con.close;
