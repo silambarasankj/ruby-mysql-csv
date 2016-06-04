@@ -1,0 +1,37 @@
+require 'watir-webdriver'
+require 'nokogiri'
+require 'mysql'
+
+con = Mysql.new('localhost', 'root', 'root', 'ruby')  
+
+b = Watir::Browser.new
+b.goto 'http://eciresults.nic.in/ConstituencywiseS2228.htm'
+b.select_list(:id => 'ddlState').select 'Tamil Nadu'
+
+doc = Nokogiri::HTML(b.html)
+constituency = doc.css('#ddlAC option')
+
+for i in 1...constituency.length #list of constituency loop
+b.select_list(:id => 'ddlAC').select(constituency[i].inner_html.strip)
+doc1 = Nokogiri::HTML(b.html)
+
+showings = []
+showings = doc1.css('#div1 table')
+showing = showings[0]
+tr_value = showing.css('tr')
+
+state_details = []
+
+state = tr_value[0].css('td').inner_html.strip;
+
+state_details = state.split(' - ');
+
+
+for i in 3...tr_value.length #list of candidate loop
+td_value = tr_value[i].css('td')
+
+statement = "INSERT INTO tamil_nadu(state,constituency,c_name,p_name,t_votes) VALUES('#{state_details[0]}','#{state_details[1]}','#{td_value[0].inner_html.strip}','#{%Q(td_value[1].inner_html.strip)}',#{td_value[2].inner_html.strip});"
+con.query(statement)
+
+end
+end
